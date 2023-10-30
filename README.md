@@ -3,20 +3,45 @@ Repo for reproducing resque-scheduler hooks issue.
 See here for details: https://github.com/resque/resque-scheduler/issues/779
 
 ## Prerequisite
-Redis is running on localhost:6379.
+- Ruby 2.7.8
+- Redis is running on localhost:6379.
 
 ## Steps to reproduce
-console1:
-```
-QUEUE=* bundle exec rake resque:work
-```
+1. Execute the following commands on each of the three consoles.  
+    console1:
+    ```
+    QUEUE=* bundle exec rake resque:work
+    ```
+    
+    console2:
+    ```
+    bundle exec rake resque:scheduler
+    ```
+    
+    console3:
+    ```
+    ruby sample_script.rb
+    ```
+2. Error is output to console 2.
+    ```
+   resque-scheduler: [INFO] 2023-10-30T17:09:00+09:00: Processing Delayed Items
+    Redis#srem will always return an Integer in Redis 5.0.0. Use Redis#srem? instead.(called from: /home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:564:in `wrapped_send')
+    Start before_enqueue
+    Pipelining commands on a Redis instance is deprecated and will be removed in Redis 5.0.0.
+    
+    redis.multi do
+    redis.get("key")
+    end
+    
+    should be replaced by
+    
+    redis.multi do |pipeline|
+    pipeline.get("key")
+    end
+    
+    (called from /home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:564:in `wrapped_send'}
+    resque-scheduler: [ERROR] 2023-10-30T17:09:00+09:00: NoMethodError: undefined method `to_i' for <Redis::Future [:llen, "resque:queue:normal"]>:Redis::Future ["/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque/data_store.rb:118:in `queue_size'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/2.7.0/forwardable.rb:235:in `queue_size'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque.rb:363:in `size'", "/home/user/git-repos/repro-resque-scheduler-hooks-issue/jobs/sample_job.rb:8:in `before_enqueue'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque.rb:447:in `block in enqueue_to'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque.rb:446:in `collect'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque.rb:446:in `enqueue_to'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:344:in `enqueue_from_config'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:286:in `enqueue'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:258:in `block (3 levels) in enqueue_items_in_batch_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:254:in `each'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:254:in `block (2 levels) in enqueue_items_in_batch_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:587:in `block in namespaced_block'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:227:in `block in multi'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `block in synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:222:in `multi'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:564:in `wrapped_send'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:588:in `namespaced_block'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:311:in `multi'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque/data_store.rb:65:in `method_missing'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:253:in `block in enqueue_items_in_batch_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis/commands/transactions.rb:89:in `block in watch'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `block in synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis.rb:265:in `synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-4.8.1/lib/redis/commands/transactions.rb:84:in `watch'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:564:in `wrapped_send'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:521:in `call_with_namespace'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/redis-namespace-1.11.0/lib/redis/namespace.rb:395:in `block (2 levels) in <class:Namespace>'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-2.6.0/lib/resque/data_store.rb:65:in `method_missing'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:252:in `enqueue_items_in_batch_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:219:in `block (2 levels) in enqueue_delayed_items_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:293:in `handle_shutdown'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:216:in `block in enqueue_delayed_items_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:215:in `loop'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:215:in `enqueue_delayed_items_for_timestamp'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:190:in `handle_delayed_items'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:69:in `block in run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:57:in `loop'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler.rb:57:in `run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler/cli.rb:117:in `run_forever'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/resque-scheduler-4.10.0/lib/resque/scheduler/tasks.rb:18:in `block (2 levels) in <top (required)>'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:281:in `block in execute'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:281:in `each'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:281:in `execute'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:219:in `block in invoke_with_call_chain'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:199:in `synchronize'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:199:in `invoke_with_call_chain'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/task.rb:188:in `invoke'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:160:in `invoke_task'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:116:in `block (2 levels) in top_level'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:116:in `each'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:116:in `block in top_level'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:125:in `run_with_threads'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:110:in `top_level'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:83:in `block in run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:186:in `standard_exception_handling'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/lib/rake/application.rb:80:in `run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/rake-13.0.6/exe/rake:27:in `<top (required)>'", "/home/user/.rbenv/versions/2.7.8/bin/rake:23:in `load'", "/home/user/.rbenv/versions/2.7.8/bin/rake:23:in `<top (required)>'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli/exec.rb:58:in `load'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli/exec.rb:58:in `kernel_load'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli/exec.rb:23:in `run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli.rb:492:in `exec'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/vendor/thor/lib/thor/command.rb:27:in `run'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/vendor/thor/lib/thor.rb:392:in `dispatch'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli.rb:34:in `dispatch'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/vendor/thor/lib/thor/base.rb:485:in `start'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/cli.rb:28:in `start'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/exe/bundle:37:in `block in <top (required)>'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors'", "/home/user/.rbenv/versions/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-2.4.18/exe/bundle:29:in `<top (required)>'", "/home/user/.rbenv/versions/2.7.8/bin/bundle:23:in `load'", "/home/user/.rbenv/versions/2.7.8/bin/bundle:23:in `<main>'"]
+    ```
 
-console2:
-```
-bundle exec rake resque:scheduler
-```
-
-console3:
-```
-ruby sample_script.rb
-```
+## Mitigation
+Upgrade [redis-rb](https://github.com/redis/redis-rb) to 5.x.
