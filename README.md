@@ -3,7 +3,6 @@ Repo for reproducing resque-scheduler hooks issue.
 See here for details: https://github.com/resque/resque-scheduler/issues/779
 
 ## Prerequisite
-- Ruby 2.7.8
 - Redis is running on localhost:6379.
 
 ## Steps to reproduce
